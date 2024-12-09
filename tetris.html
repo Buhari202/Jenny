@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Game</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #202124;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Tetris Container */
+        .tetris-container {
+            margin: auto;
+            padding: 20px;
+            max-width: 400px;
+        }
+
+        /* Navigation Buttons */
+        .navigation {
+            margin-bottom: 20px;
+        }
+
+        .navigation button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .navigation button:hover {
+            background-color: #39b4d8;
+        }
+
+        /* Game Info */
+        .game-info {
+            margin-bottom: 20px;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(20, 30px);
+            border: 2px solid white;
+            background-color: black;
+        }
+
+        /* Grid Cells */
+        .game-grid div {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #202124;
+            box-sizing: border-box;
+        }
+
+        /* Active Tetromino Blocks */
+        .tetromino {
+            background-color: #39b4d8;
+        }
+
+        /* Taken Blocks */
+        .taken {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="tetris-container">
+        <div class="navigation">
+            <button onclick="window.location.href='index.html'">Home</button>
+        </div>
+        <h1>Tetris Game</h1>
+        <div class="game-info">
+            <p>Score: <span id="score">0</span></p>
+            <button id="start-button">Start Game</button>
+        </div>
+        <div class="game-grid" id="game-grid"></div>
+    </div>
+
+    <script>
+        // Selectors
+        const grid = document.getElementById('game-grid');
+        const startButton = document.getElementById('start-button');
+        const scoreDisplay = document.getElementById('score');
+
+        // Game Settings
+        const width = 10; // Number of columns
+        let squares = [];
+        let currentPosition = 4;
+        let currentRotation = 0;
+        let timerId;
+        let score = 0;
+
+        // Tetromino Shapes
+        const tetrominoes = [
+            [
+                [1, width + 1, width * 2 + 1, 2], // L-shape 0°
+                [width, width + 1, width + 2, width * 2 + 2], // L-shape 90°
+                [1, width + 1, width * 2 + 1, width * 2], // L-shape 180°
+                [width, width * 2, width * 2 + 1, width * 2 + 2] // L-shape 270°
+            ],
+            [
+                [0, width, width + 1, width * 2 + 1], // Z-shape 0°
+                [width + 1, width + 2, width * 2, width * 2 + 1], // Z-shape 90°
+            ],
+            [
+                [1, width, width + 1, width + 2], // T-shape 0°
+                [1, width + 1, width + 2, width * 2 + 1], // T-shape 90°
+                [width, width + 1, width + 2, width * 2 + 1], // T-shape 180°
+                [1, width, width + 1, width * 2 + 1] // T-shape 270°
+            ],
+            [
+                [0, 1, width, width + 1], // Square (no rotation)
+            ],
+            [
+                [1, width + 1, width * 2 + 1, width * 3 + 1], // Line 0°
+                [width, width + 1, width + 2, width + 3], // Line 90°
+            ],
+        ];
+
+        // Current Tetromino
+        let random = Math.floor(Math.random() * tetrominoes.length);
+        let current = tetrominoes[random][currentRotation];
+
+        // Create Game Grid
+        function createGrid() {
+            for (let i = 0; i < 200; i++) {
+                const cell = document.createElement('div');
+                grid.appendChild(cell);
+                squares.push(cell);
+            }
+            for (let i = 0; i < 10; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('taken'); // Base row to stop falling pieces
+                grid.appendChild(cell);
+                squares.push(cell);
+            }
+        }
+
+        // Draw the Tetromino
+        function draw() {
+            current.forEach(index => {
+                squares[currentPosition + index].classList.add('tetromino');
+            });
+        }
+
+        // Undraw the Tetromino
+        function undraw() {
+            current.forEach(index => {
+                squares[currentPosition + index].classList.remove('tetromino');
+            });
+        }
+
+        // Move Tetromino Down
+        function moveDown() {
+            undraw();
+            currentPosition += width;
+            draw();
+            freeze();
+        }
+
+        // Freeze Tetromino at Bottom
+        function freeze() {
+            if (current.some(index => squares[currentPosition + index + width].classList.contains('taken'))) {
+                current.forEach(index => squares[currentPosition + index].classList.add('taken'));
+                random = Math.floor(Math.random() * tetrominoes.length);
+                currentRotation = 0;
+                current = tetrominoes[random][currentRotation];
+                currentPosition = 4;
+                draw();
+                addScore();
+                gameOver();
+            }
+        }
+
+        // Rotate Tetromino
+        function rotate() {
+            undraw();
+            currentRotation = (currentRotation + 1) % tetrominoes[random].length;
+            current = tetrominoes[random][currentRotation];
+            draw();
+        }
+
+        // Move Tetromino Left
+        function moveLeft() {
+            undraw();
+            const isAtLeftEdge = current.some(index => (currentPosition + index) % width === 0);
+            if (!isAtLeftEdge) currentPosition -= 1;
+            if (current.some(index => squares[currentPosition + index].classList.contains('taken'))) {
+                currentPosition += 1;
+            }
+            draw();
+        }
+
+        // Move Tetromino Right
+        function moveRight() {
+            undraw();
+            const isAtRightEdge = current.some(index => (currentPosition + index) % width === width - 1);
+            if (!isAtRightEdge) currentPosition += 1;
+            if (current.some(index => squares[currentPosition + index].classList.contains('taken'))) {
+                currentPosition -= 1;
+            }
+            draw();
+        }
+
+        // Add Score
+        function addScore() {
+            for (let i = 0; i < 199; i += width) {
+                const row = Array.from({ length: width }, (_, idx) => i + idx);
+                if (row.every(index => squares[index].classList.contains('taken'))) {
+                    score += 10;
+                    scoreDisplay.textContent = score;
+                    row.forEach(index => {
+                        squares[index].classList.remove('taken');
+                        squares[index].classList.remove('tetromino');
+                    });
+                    const removedSquares = squares.splice(i, width);
+                    squares = removedSquares.concat(squares);
+                    squares.forEach(cell => grid.appendChild(cell));
+                }
+            }
+        }
+
+        // Game Over
+        function gameOver() {
+            if (current.some(index => squares[currentPosition + index].classList.contains('taken'))) {
+                clearInterval(timerId);
+                alert('Game Over!');
+            }
+        }
+
+        // Controls
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') moveLeft();
+            else if (e.key === 'ArrowRight') moveRight();
+            else if (e.key === 'ArrowDown') moveDown();
+            else if (e.key === 'ArrowUp') rotate();
+        });
+
+        // Start Game
+        startButton.addEventListener('click', () => {
+            draw();
+            timerId = setInterval(moveDown, 1000);
+        });
+
+        createGrid();
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Friend's Name] Media Album</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background: #fff8e1;
+            font-family: 'Arial', sans-serif;
+            color: #6a1b9a;
+        }
+        .album-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .media-frame {
+            width: 80%;
+            max-width: 600px;
+            height: 400px;
+            background-color: #ffffff;
+            border: 5px solid #f06292;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .media-frame:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .media-frame img, .media-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease;
+        }
+        .album-controls {
+            margin-top: 20px;
+        }
+        .album-controls button {
+            margin: 0 10px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .album-controls button:hover {
+            transform: scale(1.1);
+            background-color: #f06292 !important;
+            color: white !important;
+        }
+        .counter {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #4a148c;
+        }
+        .back-home {
+            margin-top: 20px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: #fce4ec;
+            color: #6a1b9a;
+            border-top: 2px solid #f06292;
+        }
+    </style>
+</head>
+<body>
+    <div class="album-container">
+        <h1><i class="fas fa-camera-retro text-warning"></i> Highlights of the Year</h1>
+        
+        <!-- Media Frame -->
+        <div class="media-frame">
+            <img id="currentMedia" src="01.jpg" alt="Photo Album">
+            <video id="currentVideo" controls controlsList="nodownload" autoplay loop style="display: none;">
+                <source src="PLACEHOLDER_VIDEO_1.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- Counter -->
+        <div class="counter">
+            <span id="mediaCount">1</span> / 10 Slides
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="album-controls">
+            <button class="btn btn-secondary" id="prevBtn">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-secondary" id="nextBtn">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Back to Home Button -->
+        <div class="back-home">
+            <a href="index.html" class="btn btn-primary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>Made to celebrate Jennifer</p>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const media = [
+            { type: 'photo', src: '01.jpeg' },
+            { type: 'photo', src: '02.jpeg' },
+            { type: 'photo', src: '03.jpeg' },
+            { type: 'photo', src: '04.jpeg' },
+            { type: 'video', src: '05.mp4' },
+            { type: 'video', src: '06.mp4' },
+            { type: 'video', src: '01.mp4' },
+            { type: 'video', src: '02.mp4' },
+            { type: 'video', src: '03.mp4' },
+            { type: 'video', src: '04.mp4' }
+        ];
+        let currentIndex = 0;
+
+        const currentPhoto = document.getElementById('currentMedia');
+        const currentVideo = document.getElementById('currentVideo');
+        const mediaCount = document.getElementById('mediaCount');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        const updateMedia = () => {
+            const current = media[currentIndex];
+            if (current.type === 'photo') {
+                currentVideo.style.display = 'none';
+                currentPhoto.style.display = 'block';
+                currentPhoto.src = current.src;
+            } else {
+                currentPhoto.style.display = 'none';
+                currentVideo.style.display = 'block';
+                currentVideo.src = current.src;
+                currentVideo.volume = 1.0; // Set volume to 100%
+            }
+            mediaCount.textContent = currentIndex + 1;
+        };
+
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex === 0) ? media.length - 1 : currentIndex - 1;
+            updateMedia();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex === media.length - 1) ? 0 : currentIndex + 1;
+            updateMedia();
+        });
+
+        updateMedia();
+    </script>
+</body>
+</html>

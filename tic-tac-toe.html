@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #F8B195, #F67280, #C06C84, #6C5B7B, #355C7D);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            margin-top: 20px;
+        }
+        .game-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            color: #355C7D;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.2rem;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #f0f0f0;
+            color: #355C7D;
+            font-size: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
+        .cell.taken {
+            pointer-events: none;
+            background: #ddd;
+        }
+        .btn-group {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        footer {
+            margin-top: 20px;
+            color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="display-5">Tic Tac Toe</h1>
+        <p>Select a mode to play: against a friend or the computer.</p>
+    </header>
+    <div class="game-container">
+        <div class="scoreboard">
+            <div id="playerXScore">Player X: 0</div>
+            <div id="playerOScore">Player O: 0</div>
+        </div>
+        <div class="game-board" id="gameBoard"></div>
+        <div class="btn-group">
+            <button id="playFriend" class="btn btn-primary">Play with Friend</button>
+            <button id="playComputer" class="btn btn-secondary">Play Solo (vs Computer)</button>
+        </div>
+        <div class="btn-group">
+            <button onclick="resetGame()" class="btn btn-danger">Reset Game</button>
+            <button onclick="location.href='index.html'" class="btn btn-light">Home</button>
+        </div>
+    </div>
+    <footer>
+        <p>Enjoy your game!</p>
+    </footer>
+    <script>
+        const board = document.getElementById('gameBoard');
+        const playerXScore = document.getElementById('playerXScore');
+        const playerOScore = document.getElementById('playerOScore');
+        let currentPlayer;
+        let mode = 'friend'; // Default mode
+        const cells = [];
+        let scores = { X: 0, O: 0 };
+    
+        function checkWinner() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+            return winPatterns.some(pattern => 
+                pattern.every(index => cells[index].textContent === currentPlayer)
+            );
+        }
+    
+        function resetGame() {
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('taken');
+            });
+    
+            // Randomly set the starting player
+            currentPlayer = Math.random() > 0.5 ? 'X' : 'O';
+    
+            if (mode === 'computer' && currentPlayer === 'O') {
+                // Computer takes the first move in solo mode
+                playComputer();
+            }
+        }
+    
+        function updateScores() {
+            playerXScore.textContent = `Player X: ${scores.X}`;
+            playerOScore.textContent = `Player O: ${scores.O}`;
+        }
+    
+        function playComputer() {
+            const emptyCells = cells.filter(cell => !cell.textContent);
+            if (emptyCells.length > 0) {
+                const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                randomCell.textContent = 'O';
+                randomCell.classList.add('taken');
+                if (checkWinner()) {
+                    setTimeout(() => {
+                        alert(`O Wins!`);
+                        scores.O++;
+                        updateScores();
+                        resetGame();
+                    }, 200);
+                }
+                currentPlayer = 'X';
+            }
+        }
+    
+        function handleClick(cell) {
+            if (cell.textContent === '' && currentPlayer === 'X') {
+                cell.textContent = 'X';
+                cell.classList.add('taken');
+                if (checkWinner()) {
+                    setTimeout(() => {
+                        alert(`X Wins!`);
+                        scores.X++;
+                        updateScores();
+                        resetGame();
+                    }, 200);
+                } else if (mode === 'computer') {
+                    currentPlayer = 'O';
+                    playComputer();
+                } else {
+                    currentPlayer = 'O';
+                }
+            } else if (cell.textContent === '' && currentPlayer === 'O') {
+                cell.textContent = 'O';
+                cell.classList.add('taken');
+                if (checkWinner()) {
+                    setTimeout(() => {
+                        alert(`O Wins!`);
+                        scores.O++;
+                        updateScores();
+                        resetGame();
+                    }, 200);
+                } else {
+                    currentPlayer = 'X';
+                }
+            }
+        }
+    
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.addEventListener('click', () => handleClick(cell));
+            board.appendChild(cell);
+            cells.push(cell);
+        }
+    
+        document.getElementById('playFriend').addEventListener('click', () => {
+            mode = 'friend';
+            resetGame();
+        });
+    
+        document.getElementById('playComputer').addEventListener('click', () => {
+            mode = 'computer';
+            resetGame();
+        });
+    
+        // Initialize the game with a random starting player
+        resetGame();
+    </script>
+    
+</body>
+</html>
